@@ -1,17 +1,4 @@
 ;;;;;;;;;;;;;;;;;;;;;;
-;;Interface
-;;;;;;;;;;;;;;;;;;;;;;
-(setq inhibit-startup-message t)
-;;Doesnt work with putty. Go to properties->window->change manually
-(global-set-key [C-mouse-wheel-up-event]  'text-scale-increase)
-;; Not needed for terminal emacs
-(tool-bar-mode -1)
-(menu-bar-mode -1)
-(toggle-scroll-bar -1)
-(use-package color-theme-modern
-  :ensure t)
-(load-theme 'charcoal-black t)
-;;;;;;;;;;;;;;;;;;;;;;
 ;;Package management
 ;;;;;;;;;;;;;;;;;;;;;;
 (require 'package)
@@ -25,7 +12,19 @@
 ;;try <package name> uses package for current emacs session
 (use-package try
   :ensure t)
-
+;;;;;;;;;;;;;;;;;;;;;;
+;;Interface
+;;;;;;;;;;;;;;;;;;;;;;
+(setq inhibit-startup-message t)
+;;Doesnt work with putty. Go to properties->window->change manually
+(global-set-key [C-mouse-wheel-up-event]  'text-scale-increase)
+;; Not needed for terminal emacs
+(tool-bar-mode -1)
+(menu-bar-mode -1)
+(toggle-scroll-bar -1)
+(use-package color-theme-modern
+  :ensure t)
+(load-theme 'charcoal-black t)
 ;;;;;;;;;;;;;;;;;;;;;;
 ;;Interaction
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -78,7 +77,9 @@
     (global-set-key (kbd "C-x l") 'counsel-locate)
     (define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history)
     ))
-
+;;;;;;;;;;;;;;;;;;;;;;
+;;Autocompletion
+;;;;;;;;;;;;;;;;;;;;;;
 (use-package auto-complete
   :ensure t
   :init
@@ -87,7 +88,17 @@
     (global-auto-complete-mode t)
     ))
 
+(use-package flycheck
+  :ensure t
+  :init
+  (global-flycheck-mode t))
 (put 'erase-buffer 'disabled nil)
+
+(use-package yasnippet
+  :ensure t
+  :init
+  (yas-global-mode 1))
+
 
 ;;Commands for debugging missing colors in xterm
 ;(assoc 'tty-type (frame-parameters (car (frame-list))))
