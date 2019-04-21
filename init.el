@@ -127,10 +127,68 @@
   :ensure t
   :init
   (yas-global-mode 1))
+(use-package yasnippet-snippets
+  :ensure t)
 
+;;C++ completion
+(use-package ggtags
+  :ensure t
+  :config
+  (add-hook 'c-mode-common-hook
+	    (lambda ()
+	      (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+		(ggtags-mode 1)))))
+
+(use-package company-irony
+  :ensure t
+  :config
+  (add-to-list 'company-backends 'company-irony))
+
+(use-package irony
+  :ensure t
+  :config
+  (add-hook 'c++-mode-hook 'irony-mode)
+  (add-hook 'c-mode-hook 'irony-mode)
+  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+
+;; (use-package irony-eldoc
+;;   :ensure t
+;;   :config
+;;   (add-hook 'irony-mode-hook #'irony-eldoc))
+
+;(use-package company-rtags
+;  :after company)
+
+(use-package rtags
+  :commands rtags-mode
+  :bind (("C-. r D" . rtags-dependency-tree)
+	 ("C-. r F" . rtags-fixit)
+	 ("C-. r R" . rtags-rename-symbol)
+	 ("C-. r T" . rtags-tagslist)
+	 ("C-. r d" . rtags-create-doxygen-comment)
+	 ("C-. r c" . rtags-display-summary)
+	 ("C-. r e" . rtags-print-enum-value-at-point)
+	 ("C-. r f" . rtags-find-file)
+	 ("C-. r i" . rtags-include-file)
+	 ("C-. r i" . rtags-symbol-info)
+	 ("C-. r m" . rtags-imenu)
+	 ("C-. r n" . rtags-next-match)
+	 ("C-. r p" . rtags-previous-match)
+	 ("C-. r r" . rtags-find-references)
+	 ("C-. r s" . rtags-find-symbol)
+	 ("C-. r v" . rtags-find-virtuals-at-point))
+  :bind (:map c-mode-base-map
+	      ("M-." . rtags-find-symbol-at-point)))
+(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
 
 ;;Commands for debugging missing colors in xterm
 ;(assoc 'tty-type (frame-parameters (car (frame-list))))
 ;(list-colors-display)
 ;; Try setting this in .bashrc to allow emacs themes:
 ;;TERM=xterm-256color
+
+(defun yes-or-no-p->-y-or-n-p (orig-fun &rest r)
+  (cl-letf (((symbol-function 'yes-or-no-p) #'y-or-n-p))
+    (apply orig-fun r)))
+
+(advice-add 'kill-buffer :around #'yes-or-no-p->-y-or-n-p)
