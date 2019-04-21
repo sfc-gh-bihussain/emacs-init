@@ -5,9 +5,12 @@
 ;;Doesnt work with putty. Go to properties->window->change manually
 (global-set-key [C-mouse-wheel-up-event]  'text-scale-increase)
 ;; Not needed for terminal emacs
-(tool-bar-mode 0)
-(put 'erase-buffer 'disabled nil)
-
+(tool-bar-mode -1)
+(menu-bar-mode -1)
+(toggle-scroll-bar -1)
+(use-package color-theme-modern
+  :ensure t)
+(load-theme 'charcoal-black t)
 ;;;;;;;;;;;;;;;;;;;;;;
 ;;Package management
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -84,6 +87,7 @@
     (global-auto-complete-mode t)
     ))
 
+(put 'erase-buffer 'disabled nil)
 
 ;;Commands for debugging missing colors in xterm
 ;(assoc 'tty-type (frame-parameters (car (frame-list))))
