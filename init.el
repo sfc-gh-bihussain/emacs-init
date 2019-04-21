@@ -77,6 +77,13 @@
     (global-set-key (kbd "C-x l") 'counsel-locate)
     (define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history)
     ))
+
+(use-package undo-tree
+  :ensure t
+  :init
+  (global-undo-tree-mode))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;
 ;;Autocompletion
 ;;;;;;;;;;;;;;;;;;;;;;
