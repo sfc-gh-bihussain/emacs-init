@@ -25,6 +25,11 @@
 (use-package color-theme-modern
   :ensure t)
 (load-theme 'charcoal-black t)
+(use-package beacon
+  :ensure t
+  :config
+  (beacon-mode 1)
+  (setq beacon-color "#666600"))
 ;;;;;;;;;;;;;;;;;;;;;;
 ;;Interaction
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -83,6 +88,22 @@
   :init
   (global-undo-tree-mode))
 
+;; (use-package hungry-delete
+;;   :ensure t
+;;   :config
+;;   (global-hungry-delete-mode))
+
+
+;;Indent stuff as you are typing
+;; (use-package aggressive-indent
+;;   :ensure t
+;;   :config
+;;   (global-aggressive-indent-mode 1))
+
+(use-package expand-region
+  :ensure t
+  :config
+  (global-set-key (kbd "C-m") 'er/expand-region))
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;;Autocompletion
