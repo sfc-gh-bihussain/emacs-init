@@ -100,10 +100,11 @@
 ;;   :config
 ;;   (global-aggressive-indent-mode 1))
 
+(global-unset-key (kbd "C-o"))
 (use-package expand-region
   :ensure t
   :config
-  (global-set-key (kbd "C-m") 'er/expand-region))
+  (global-set-key (kbd "C-o") 'er/expand-region))
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;;Autocompletion
