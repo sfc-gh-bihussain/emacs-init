@@ -76,6 +76,13 @@
     (define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history)
     ))
 
+(use-package auto-complete
+  :ensure t
+  :init
+  (progn
+    (ac-config-default)
+    (global-auto-complete-mode t)
+    ))
 
 
 ;;Commands for debugging missing colors in xterm
