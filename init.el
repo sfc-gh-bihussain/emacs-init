@@ -30,6 +30,13 @@
   :config
   (beacon-mode 1)
   (setq beacon-color "#666600"))
+
+(use-package indent-guide
+  :ensure t
+  :config
+  (indent-guide-global-mode))
+
+(setq c-basic-offset 2)
 ;;;;;;;;;;;;;;;;;;;;;;
 ;;Interaction
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -131,33 +138,34 @@
   :ensure t)
 
 ;;C++ completion
-(use-package ggtags
-  :ensure t
-  :config
-  (add-hook 'c-mode-common-hook
-	    (lambda ()
-	      (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-		(ggtags-mode 1)))))
-
-(use-package company-irony
-  :ensure t
-  :config
-  (add-to-list 'company-backends 'company-irony))
-
-(use-package irony
-  :ensure t
-  :config
-  (add-hook 'c++-mode-hook 'irony-mode)
-  (add-hook 'c-mode-hook 'irony-mode)
-  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
-
-;; (use-package irony-eldoc
+;;I have not gotten this to work :/
+;; (use-package ggtags
 ;;   :ensure t
 ;;   :config
-;;   (add-hook 'irony-mode-hook #'irony-eldoc))
+;;   (add-hook 'c-mode-common-hook
+;; 	    (lambda ()
+;; 	      (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+;; 		(ggtags-mode 1)))))
 
-;(use-package company-rtags
-;  :after company)
+;; (use-package company-irony
+;;   :ensure t
+;;   :config
+;;   (add-to-list 'company-backends 'company-irony))
+
+;; (use-package irony
+;;   :ensure t
+;;   :config
+;;   (add-hook 'c++-mode-hook 'irony-mode)
+;;   (add-hook 'c-mode-hook 'irony-mode)
+;;   (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+
+;; (add-to-list 'package--builtin-versions '(emacs 25))
+	     
+;; (use-package lsp-mode
+;;   :ensure t)
+
+;; (use-package cquery
+;;   :ensure t)
 
 (use-package rtags
   :commands rtags-mode
@@ -192,3 +200,12 @@
     (apply orig-fun r)))
 
 (advice-add 'kill-buffer :around #'yes-or-no-p->-y-or-n-p)
+
+;;Misc
+(setq
+ backup-by-copying t      ; don't clobber symlinks
+ backup-directory-alist
+ '(("." . "~/.saves/"))    ; don't litter my fs tree
+ delete-old-versions t
+ kept-new-versions 6
+    kept-old-versions 2)
