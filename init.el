@@ -51,8 +51,8 @@
 (ido-mode 1)
 
 ;;C-x C-b brings up different looking search
-;;(defalias 'list-buffers 'ibuffer)
-(defalias 'list-buffers 'ibuffer-other-window)
+(defalias 'list-buffers 'ibuffer)
+;;(defalias 'list-buffers 'ibuffer-other-window)
 
 ;Seems broken on putty
 (use-package tabbar
