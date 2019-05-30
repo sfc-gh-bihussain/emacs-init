@@ -40,6 +40,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 ;;Interaction
 ;;;;;;;;;;;;;;;;;;;;;;
+(winner-mode t)
 ;;C-x <delay> brings up help window
 (use-package which-key
   :ensure t
