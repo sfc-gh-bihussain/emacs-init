@@ -17,11 +17,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 (setq inhibit-startup-message t)
 ;;Doesnt work with putty. Go to properties->window->change manually
-(global-set-key [C-mouse-wheel-up-event]  'text-scale-increase)
+(global-set-key [C-wheel-up]  'text-scale-increase)
+(global-set-key [C-wheel-down]  'text-scale-decrease)
 ;; Not needed for terminal emacs
 (tool-bar-mode -1)
 (menu-bar-mode -1)
-(toggle-scroll-bar -1)
+(toggle-scroll-bar 1)
 (use-package color-theme-modern
   :ensure t)
 (load-theme 'charcoal-black t)
@@ -40,6 +41,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 ;;Interaction
 ;;;;;;;;;;;;;;;;;;;;;;
+(set-register ?i '(file . "~/.emacs.d/init.el"))
+(set-register ?d '(file . "C:/Users/User/Documents"))
+
 ;;C-x <delay> brings up help window
 (use-package which-key
   :ensure t
@@ -51,10 +55,10 @@
 (ido-mode 1)
 
 ;;C-x C-b brings up different looking search
-;;(defalias 'list-buffers 'ibuffer)
-(defalias 'list-buffers 'ibuffer-other-window)
+(defalias 'list-buffers 'ibuffer)
+;;(defalias 'list-buffers 'ibuffer-other-window)
 
-;Seems broken on putty
+;;Seems broken on putty
 (use-package tabbar
   :ensure t
   :config
@@ -65,8 +69,8 @@
   :ensure t
   :init
   (progn
-   (global-set-key [remap other-window] 'ace-window)
-     (custom-set-faces
+    (global-set-key [remap other-window] 'ace-window)
+    (custom-set-faces
      '(aw-leading-char-face
        ((t (:inherit ace-jump-face-foreground :height 3.0)))))
     ))
@@ -84,7 +88,7 @@
     (setq enable-recursive-minibuffers t)
     ;; enable this if you want `swiper' to use it
     ;; (setq search-default-mode #'char-fold-to-regexp)
-    (global-set-key "\C-s" 'swiper)
+    (global-set-key (kbd "M-s s") 'swiper)
     (global-set-key (kbd "M-x") 'counsel-M-x)
     (global-set-key (kbd "C-x C-f") 'counsel-find-file)
     (global-set-key (kbd "C-c g") 'counsel-git)
@@ -98,17 +102,11 @@
   :init
   (global-undo-tree-mode))
 
-;; (use-package hungry-delete
-;;   :ensure t
-;;   :config
-;;   (global-hungry-delete-mode))
-
-
 ;;Indent stuff as you are typing
-;; (use-package aggressive-indent
-;;   :ensure t
-;;   :config
-;;   (global-aggressive-indent-mode 1))
+(use-package aggressive-indent
+  :ensure t
+  :config
+  (global-aggressive-indent-mode 1))
 
 (global-unset-key (kbd "C-o"))
 (use-package expand-region
@@ -131,7 +129,6 @@
   :ensure t
   :init
   (global-flycheck-mode t))
-(put 'erase-buffer 'disabled nil)
 
 (use-package yasnippet
   :ensure t
@@ -142,18 +139,26 @@
 
 ;;C++ completion
 ;;I have not gotten this to work :/
-;; (use-package ggtags
-;;   :ensure t
-;;   :config
-;;   (add-hook 'c-mode-common-hook
-;; 	    (lambda ()
-;; 	      (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-;; 		(ggtags-mode 1)))))
+(use-package ggtags
+  :ensure t
+  :config
+  (add-hook 'c-mode-common-hook
+	    (lambda ()
+	      (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+		(ggtags-mode 1)))))
 
-;; (use-package company-irony
-;;   :ensure t
-;;   :config
-;;   (add-to-list 'company-backends 'company-irony))
+(use-package company
+  :ensure t
+  :config
+  (setq company-idle-delay 0)
+  (setq company-minimum-prefix-length 1)
+  (add-hook 'after-init-hook 'global-company-mode))
+
+(use-package company-irony
+  :ensure t
+  :config
+  (require 'company)
+  (add-to-list 'company-backends 'company-irony))
 
 ;; (use-package irony
 ;;   :ensure t
@@ -163,12 +168,15 @@
 ;;   (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
 
 ;; (add-to-list 'package--builtin-versions '(emacs 25))
-	     
+
 ;; (use-package lsp-mode
 ;;   :ensure t)
 
 ;; (use-package cquery
 ;;   :ensure t)
+
+(use-package tex
+  :ensure auctex)
 
 (use-package rtags
   :commands rtags-mode
@@ -193,8 +201,8 @@
 (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
 
 ;;Commands for debugging missing colors in xterm
-;(assoc 'tty-type (frame-parameters (car (frame-list))))
-;(list-colors-display)
+;;(assoc 'tty-type (frame-parameters (car (frame-list))))
+;;(list-colors-display)
 ;; Try setting this in .bashrc to allow emacs themes:
 ;;TERM=xterm-256color
 
@@ -211,7 +219,7 @@
  '(("." . "~/.saves/"))    ; don't litter my fs tree
  delete-old-versions t
  kept-new-versions 6
-    kept-old-versions 2)
+ kept-old-versions 2)
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -219,10 +227,13 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (yasnippet-snippets yasnippet flycheck auto-complete expand-region undo-tree swiper ace-window tabbar which-key indent-guide beacon color-theme-modern try use-package))))
+    (company company-irony ggtags aggressive-indent hungry-delete auctex yasnippet-snippets yasnippet flycheck auto-complete expand-region undo-tree swiper ace-window tabbar which-key indent-guide beacon color-theme-modern try use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(aw-leading-char-face ((t (:inherit ace-jump-face-foreground :height 3.0)))))
+(put 'erase-buffer 'disabled nil)
+
+
+(setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc))
