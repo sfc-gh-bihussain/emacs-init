@@ -38,13 +38,27 @@
   (indent-guide-global-mode))
 
 (setq c-basic-offset 2)
+
 ;;;;;;;;;;;;;;;;;;;;;;
 ;;Interaction
 ;;;;;;;;;;;;;;;;;;;;;;
 (set-register ?i '(file . "~/.emacs.d/init.el"))
 (set-register ?d '(file . "C:/Users/User/Documents"))
+(set-register ?m '(file . "C:/MinGW/bin"))
 (set-register ?4 '(file . "C:/Users/User/Documents/Assignments/CS240"))
+
 (winner-mode t)
+
+(load-library "hideshow")
+(hs-minor-mode 1)
+(global-unset-key (kbd "C-M-h"))
+(global-unset-key (kbd "C-M-s"))
+(global-set-key (kbd "C-M-h") 'hs-hide-block)
+(global-set-key (kbd "C-M-s") 'hs-show-block)
+(global-set-key (kbd "C-M-:") 'hs-show-all)
+(global-set-key (kbd "C-M-;") 'hs-hide-all)
+
+
 
 ;;C-x <delay> brings up help window
 (use-package which-key
