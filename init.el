@@ -42,15 +42,21 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 ;;Interaction
 ;;;;;;;;;;;;;;;;;;;;;;
+
+;;Open shell current buffer
+(push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
+
+;;C-x r j $reg to jump
 (set-register ?i '(file . "~/.emacs.d/init.el"))
 (set-register ?d '(file . "C:/Users/User/Documents"))
 (set-register ?m '(file . "C:/MinGW/bin"))
 (set-register ?4 '(file . "C:/Users/User/Documents/Assignments/CS240"))
 
+;;C-c back
 (winner-mode t)
 
 (load-library "hideshow")
-(hs-minor-mode 1)
+(add-hook 'prog-mode-hook (lambda() (hs-minor-mode 1)))
 (global-unset-key (kbd "C-M-h"))
 (global-unset-key (kbd "C-M-s"))
 (global-set-key (kbd "C-M-h") 'hs-hide-block)
@@ -81,15 +87,17 @@
   (tabbar-mode 1))
 
 ;; C-x o gives instant jumps
+(global-unset-key (kbd "C-x o"))
 (use-package ace-window
   :ensure t
   :init
   (progn
-    (global-set-key [remap other-window] 'ace-window)
+    (global-set-key (kbd "C-x o") 'ace-window)
     (custom-set-faces
      '(aw-leading-char-face
        ((t (:inherit ace-jump-face-foreground :height 3.0)))))
     ))
+(global-set-key (kbd "M-n") 'other-window)
 
 (use-package counsel
   :ensure t)
