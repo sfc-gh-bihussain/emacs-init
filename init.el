@@ -43,6 +43,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 (set-register ?i '(file . "~/.emacs.d/init.el"))
 (set-register ?d '(file . "C:/Users/User/Documents"))
+(set-register ?4 '(file . "C:/Users/User/Documents/Assignments/CS240"))
 (winner-mode t)
 
 ;;C-x <delay> brings up help window
