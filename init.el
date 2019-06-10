@@ -43,6 +43,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 (set-register ?i '(file . "~/.emacs.d/init.el"))
 (set-register ?d '(file . "C:/Users/User/Documents"))
+(winner-mode t)
 
 ;;C-x <delay> brings up help window
 (use-package which-key
