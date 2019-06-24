@@ -1,4 +1,20 @@
 ;;;;;;;;;;;;;;;;;;;;;;
+;;Init.el specific notes
+;;;;;;;;;;;;;;;;;;;;;;
+;; https://www.reddit.com/r/emacs/comments/3kqt6e/2_easy_little_known_steps_to_speed_up_emacs_start/
+(defvar gc-cons-threshold--orig gc-cons-threshold)
+(setq gc-cons-threshold (* 100 1024 1024)
+      gc-cons-percentage 0.6
+      file-name-handler-alist nil)
+
+(defun rag-set-gc-threshold ()
+  "Reset `gc-cons-threshold' and `gc-cons-percentage' to their default values."
+  (setq gc-cons-threshold gc-cons-threshold--orig
+        gc-cons-percentage 0.1
+        file-name-handler-alist rag--file-name-handler-alist))
+
+(setenv "PATH" (concat "C:\\msys64\\mingw64\\bin;" (getenv "PATH")))
+;;;;;;;;;;;;;;;;;;;;;;
 ;;Package management
 ;;;;;;;;;;;;;;;;;;;;;;
 (require 'package)
@@ -20,9 +36,9 @@
 (global-set-key [C-wheel-up]  'text-scale-increase)
 (global-set-key [C-wheel-down]  'text-scale-decrease)
 ;; Not needed for terminal emacs
-(tool-bar-mode -1)
-(menu-bar-mode -1)
-(toggle-scroll-bar 1)
+(tool-bar-mode 0)
+(menu-bar-mode 1)
+(toggle-scroll-bar 0)
 (use-package color-theme-modern
   :ensure t)
 (load-theme 'charcoal-black t)
@@ -30,7 +46,7 @@
   :ensure t
   :config
   (beacon-mode 1)
-  (setq beacon-color "#666600"))
+  (setq beacon-color "#666666"))
 
 (use-package indent-guide
   :ensure t
@@ -52,7 +68,7 @@
 (set-register ?m '(file . "C:/MinGW/bin"))
 (set-register ?4 '(file . "C:/Users/User/Documents/Assignments/CS240"))
 
-;;C-c back
+;;C-c <Left> C-c <Right>
 (winner-mode t)
 
 (load-library "hideshow")
@@ -112,7 +128,7 @@
     (setq enable-recursive-minibuffers t)
     ;; enable this if you want `swiper' to use it
     ;; (setq search-default-mode #'char-fold-to-regexp)
-    (global-set-key (kbd "M-s s") 'swiper)
+    (global-set-key (kbd "M-s M-s") 'swiper)
     (global-set-key (kbd "M-x") 'counsel-M-x)
     (global-set-key (kbd "C-x C-f") 'counsel-find-file)
     (global-set-key (kbd "C-c g") 'counsel-git)
@@ -146,8 +162,7 @@
   :init
   (progn
     (ac-config-default)
-    (global-auto-complete-mode t)
-    ))
+    (global-auto-complete-mode t)))
 
 (use-package flycheck
   :ensure t
@@ -160,6 +175,8 @@
   (yas-global-mode 1))
 (use-package yasnippet-snippets
   :ensure t)
+
+(setq yas-prompt-functions '(yas-x-prompt yas-dropdown-prompt))
 
 ;;C++ completion
 ;;I have not gotten this to work :/
@@ -261,3 +278,26 @@
 
 
 (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; M-x package-install RET auctex RET
+(add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
+;; (add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode)
+;; (setq TeX-source-correlate-method 'synctex)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(use-package pdf-tools
+  :ensure t
+  :config
+  (pdf-tools-install))
+(server-start)
+(setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+      TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
+      TeX-source-correlate-start-server t)
+;; to have the buffer refresh after compilation
+(add-hook 'TeX-after-compilation-finished-functions
+	  'TeX-revert-document-buffer)
+(add-hook 'doc-view-mode-hook 'auto-revert-mode)
+
+
+;;Print init time
+(emacs-init-time)
