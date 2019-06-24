@@ -16,12 +16,13 @@
 ;;Interface
 ;;;;;;;;;;;;;;;;;;;;;;
 (setq inhibit-startup-message t)
-;;Doesnt work with putty. Go to properties->window->change manually
+;;Windows mouse wheel 
 (global-set-key [C-wheel-up]  'text-scale-increase)
 (global-set-key [C-wheel-down]  'text-scale-decrease)
+;;Putty sends mouse-4 and mouse-5 for wheel
+(global-set-key [C-M-mouse-4]  'text-scale-increase)
+(global-set-key [C-M-mouse-5]  'text-scale-decrease)
 
-(global-set-key [C-M-mouse-1]  'text-scale-increase)
-(global-set-key [C-M-mouse-3]  'text-scale-decrease)
 ;; Not needed for terminal emacs
 (tool-bar-mode -1)
 (menu-bar-mode 1)
@@ -177,8 +178,8 @@
 (use-package company
   :ensure t
   :config
-  (setq company-idle-delay 0)
-  (setq company-minimum-prefix-length 1)
+  (setq company-idle-delay 2)
+  (setq company-minimum-prefix-length 3)
   (add-hook 'after-init-hook 'global-company-mode))
 
 (use-package company-irony
