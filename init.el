@@ -32,13 +32,19 @@
 ;;Interface
 ;;;;;;;;;;;;;;;;;;;;;;
 (setq inhibit-startup-message t)
-;;Doesnt work with putty. Go to properties->window->change manually
+;;Windows mouse wheel 
 (global-set-key [C-wheel-up]  'text-scale-increase)
 (global-set-key [C-wheel-down]  'text-scale-decrease)
+;;Putty sends mouse-4 and mouse-5 for wheel
+(global-set-key [C-M-mouse-4]  'text-scale-increase)
+(global-set-key [C-M-mouse-5]  'text-scale-decrease)
+
 ;; Not needed for terminal emacs
-(tool-bar-mode 0)
+
+(tool-bar-mode -1)
 (menu-bar-mode 1)
-(toggle-scroll-bar 0)
+(toggle-scroll-bar 1)
+
 (use-package color-theme-modern
   :ensure t)
 (load-theme 'charcoal-black t)
@@ -113,7 +119,7 @@
      '(aw-leading-char-face
        ((t (:inherit ace-jump-face-foreground :height 3.0)))))
     ))
-(global-set-key (kbd "M-n") 'other-window)
+(global-set-key (kbd "C-M-n") 'other-window)
 
 (use-package counsel
   :ensure t)
@@ -191,8 +197,8 @@
 (use-package company
   :ensure t
   :config
-  (setq company-idle-delay 0)
-  (setq company-minimum-prefix-length 1)
+  (setq company-idle-delay 2)
+  (setq company-minimum-prefix-length 3)
   (add-hook 'after-init-hook 'global-company-mode))
 
 (use-package company-irony
@@ -271,6 +277,7 @@
     (company company-irony ggtags aggressive-indent hungry-delete auctex yasnippet-snippets yasnippet flycheck auto-complete expand-region undo-tree swiper ace-window tabbar which-key indent-guide beacon color-theme-modern try use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(aw-leading-char-face ((t (:inherit ace-jump-face-foreground :height 3.0)))))
