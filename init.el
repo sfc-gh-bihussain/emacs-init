@@ -43,7 +43,7 @@
 
 (tool-bar-mode -1)
 (menu-bar-mode 1)
-(toggle-scroll-bar 1)
+(toggle-scroll-bar -1)
 
 (use-package color-theme-modern
   :ensure t)
@@ -68,11 +68,20 @@
 ;;Open shell current buffer
 (push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
 
+;;TODO: Make these bindings platform agnostic
+;;--Import register bindings from file
+;;--Add platform specific home path
+
 ;;C-x r j $reg to jump
 (set-register ?i '(file . "~/.emacs.d/init.el"))
-(set-register ?d '(file . "C:/Users/User/Documents"))
+(set-register ?t '(file . "C:/Users/User/Drive/Tobyx"))
+(set-register ?d '(file . "C:/Users/User/Drive"))
+(set-register ?o '(file . "C:/Users/User/Downloads"))
 (set-register ?m '(file . "C:/MinGW/bin"))
-(set-register ?4 '(file . "C:/Users/User/Documents/Assignments/CS240"))
+
+(setq default-directory "C:/Users/User/" )
+(setenv "HOME"  "C:/Users/User" )
+
 
 ;;C-c <Left> C-c <Right>
 (winner-mode t)
