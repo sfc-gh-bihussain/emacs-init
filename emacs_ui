@@ -1,0 +1,17 @@
+(tool-bar-mode -1)
+
+(menu-bar-mode 1)
+
+(toggle-scroll-bar -1)
+
+(use-package color-theme-modern
+  :ensure t)
+
+;(load-theme 'charcoal-black t)
+(load-theme 'aalto-dark t)
+
+(use-package beacon
+  :ensure t
+  :config
+  (beacon-mode 1)
+  (setq beacon-color "#666666"))

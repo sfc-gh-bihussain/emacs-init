@@ -1,0 +1,7 @@
+(global-set-key [C-wheel-up]  'text-scale-increase)
+
+(global-set-key [C-wheel-down]  'text-scale-decrease)
+
+(global-set-key [C-M-mouse-4]  'text-scale-increase)
+
+(global-set-key [C-M-mouse-5]  'text-scale-decrease)
