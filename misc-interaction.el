@@ -3,8 +3,6 @@
 (menu-bar-mode 1)
 (toggle-scroll-bar -1)
 
-
-
 (use-package undo-tree
   :ensure t
   :init
@@ -23,3 +21,9 @@
   (global-set-key (kbd "C-o") 'er/expand-region))
 
 (defalias 'list-buffers 'ibuffer)
+
+(use-package goto-line-preview
+  :ensure t
+  :config
+  (global-set-key [remap goto-line] 'goto-line-preview))
+

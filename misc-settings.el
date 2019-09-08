@@ -8,3 +8,6 @@
 
 (setq default-directory "C:/Users/User/" )
 (setenv "HOME"  "C:/Users/User" )
+(setq load-prefer-newer t)
+
+(defalias 'yes-or-no-p 'y-or-n-p)

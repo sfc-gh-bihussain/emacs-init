@@ -1,3 +1,5 @@
+(global-linum-mode 1)
+
 (tool-bar-mode -1)
 
 (menu-bar-mode 1)
@@ -31,3 +33,4 @@
   :ensure t
   :config
   (golden-ratio-mode 1))
+

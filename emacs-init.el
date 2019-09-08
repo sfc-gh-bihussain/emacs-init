@@ -4,10 +4,10 @@
 (defvar 100-mb (* 100 1024 1024))
 (setq gc-cons-threshold 100-mb)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  (defun full-path (@file-relative-path)
-    (concat (file-name-directory
-	     (or load-file-name buffer-file-name))
-	    @file-relative-path))
+(defun full-path (@file-relative-path)
+  (concat (file-name-directory
+	   (or load-file-name buffer-file-name))
+	  @file-relative-path))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (let ((file-name-handler-alist nil))
   (load (full-path "./pre-init.el"))
@@ -17,6 +17,6 @@
   (load (full-path "./startup.el"))
   (load (full-path "./misc-settings.el"))
   (load (full-path "./misc-interaction.el"))
-  (load (full-path "./auto-complete.el"))
+  (load (full-path "./auto-complete.el")))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (setq gc-cons-threshold  orig-gc-threshold)
