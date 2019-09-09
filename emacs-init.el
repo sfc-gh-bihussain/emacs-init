@@ -19,4 +19,5 @@
   (load (full-path "./misc-interaction.el"))
   (load (full-path "./auto-complete.el")))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (setq gc-cons-threshold  orig-gc-threshold)
