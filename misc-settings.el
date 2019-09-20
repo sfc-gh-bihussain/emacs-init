@@ -6,8 +6,11 @@
  kept-new-versions 6
  kept-old-versions 2)
 
-(setq default-directory "C:/Users/User/" )
-(setenv "HOME"  "C:/Users/User" )
+(if (string= (system-name) "DESKTOP-24FKRDK")
+    (progn (setq default-directory "C:/Users/User/" )
+	   (setenv "HOME"  "C:/Users/User" ))
+  )
+
 (setq load-prefer-newer t)
 
 (defalias 'yes-or-no-p 'y-or-n-p)
