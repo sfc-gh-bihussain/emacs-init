@@ -16,8 +16,12 @@
   (load (full-path "./global-keys.el"))
   (load (full-path "./startup.el"))
   (load (full-path "./misc-settings.el"))
+  (load (full-path "./navigation-keys.el"))
   (load (full-path "./misc-interaction.el"))
-  (load (full-path "./auto-complete.el")))
+  (load (full-path "./auto-complete.el"))
+  (load (full-path "./flycheck.el"))
+  (load (full-path "./latex.el")))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (setq gc-cons-threshold  orig-gc-threshold)
