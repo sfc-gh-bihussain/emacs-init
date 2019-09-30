@@ -12,6 +12,6 @@
 
 (if (string= (system-name) "ubuntu1804-002")
     (progn
-      (set-register ?i '(file .  "~/.emacs.d/emacs-init/emacs-init.el"))))
-;;      (set-register ?b '(file .  "~/.el"))
+      (set-register ?i '(file .  "~/.emacs.d/emacs-init/emacs-init.el"))
+      (set-register ?b '(file .  "~/cs350-os161/root/"))))
 
