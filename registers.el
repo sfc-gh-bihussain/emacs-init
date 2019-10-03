@@ -8,3 +8,10 @@
       (set-register ?o '(file . "C:/Users/User/Downloads"))
       (set-register ?m '(file . "C:/MinGW/bin")))
   )
+
+
+(if (string= (system-name) "ubuntu1804-002")
+    (progn
+      (set-register ?i '(file .  "~/.emacs.d/emacs-init/emacs-init.el"))
+      (set-register ?b '(file .  "~/cs350-os161/root/"))))
+

@@ -44,7 +44,10 @@
 (use-package rainbow-delimiters
   :ensure t
   :config
-  (rainbow-delimiters-mode 1)
+  (progn
+    (rainbow-delimiters-mode 1)
+    (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
+    )
   )
 (setq rainbow-delimiters-depth-1-face "red")
 

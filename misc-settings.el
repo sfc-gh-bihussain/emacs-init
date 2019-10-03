@@ -13,4 +13,6 @@
 
 (setq load-prefer-newer t)
 
+(desktop-save-mode 1)
+
 (defalias 'yes-or-no-p 'y-or-n-p)
