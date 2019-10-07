@@ -8,16 +8,6 @@
     (when (and eslint (file-executable-p eslint))
       (setq-local flycheck-javascript-eslint-executable eslint))))
 
-(use-package js2-mode
-  :ensure t)
-
-(use-package json-mode
-  :ensure t)
-
-(use-package web-mode
-  :ensure t
-  :config
-  (add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode)))
 
 (use-package flycheck
   :ensure t
@@ -38,3 +28,14 @@
       ad-do-it))
   
   )
+
+(use-package js2-mode
+  :ensure t)
+
+(use-package json-mode
+  :ensure t)
+
+(use-package web-mode
+  :ensure t
+  :config
+  (add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode)))
