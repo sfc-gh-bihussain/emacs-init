@@ -9,6 +9,9 @@
 	   (or load-file-name buffer-file-name))
 	  @file-relative-path))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;(org-babel-load-file (full-path "./myinit.org"))
+
 (let ((file-name-handler-alist nil))
   (load (full-path "./pre-init.el"))
   (load (full-path "./registers.el"))

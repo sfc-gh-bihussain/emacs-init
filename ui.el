@@ -1,6 +1,4 @@
-(add-hook 'text-mode-hook 'linum-mode)
-(add-hook 'prog-mode-hook 'linum-mode)
-
+(display-line-numbers-mode nil)
 (tool-bar-mode -1)
 
 (menu-bar-mode 1)
