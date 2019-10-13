@@ -29,13 +29,3 @@
   
   )
 
-(use-package js2-mode
-  :ensure t)
-
-(use-package json-mode
-  :ensure t)
-
-(use-package web-mode
-  :ensure t
-  :config
-  (add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode)))
