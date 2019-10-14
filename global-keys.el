@@ -1,4 +1,4 @@
-(global-set-key [C-wheel-up]  'text-scale-increase)
+b(global-set-key [C-wheel-up]  'text-scale-increase)
 
 (global-set-key [C-wheel-down]  'text-scale-decrease)
 
@@ -36,3 +36,5 @@
      '(aw-leading-char-face
        ((t (:inherit ace-jump-face-foreground :height 3.0)))))
     ))
+(global-unset-key (kbd "C-j"))
+(global-set-key  (kbd "C-j") 'shell)
