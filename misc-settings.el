@@ -15,4 +15,7 @@
 
 (desktop-save-mode 1)
 
+(add-to-list 'display-buffer-alist
+             '("^\\*shell\\*$" . (display-buffer-same-window)))
+
 (defalias 'yes-or-no-p 'y-or-n-p)

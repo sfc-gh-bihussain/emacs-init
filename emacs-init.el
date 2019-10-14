@@ -28,6 +28,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (setq gc-cons-threshold  orig-gc-threshold)
-
+(package-refresh-contents t)
 ;;TODO: M-l M-f fold
 ;;      M-l M-u unfold
