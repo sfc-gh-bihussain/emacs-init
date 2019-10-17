@@ -9,6 +9,9 @@
 	   (or load-file-name buffer-file-name))
 	  @file-relative-path))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;(org-babel-load-file (full-path "./myinit.org"))
+
 (let ((file-name-handler-alist nil))
   (load (full-path "./pre-init.el"))
   (load (full-path "./registers.el"))
@@ -25,6 +28,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (setq gc-cons-threshold  orig-gc-threshold)
-
+(package-refresh-contents t)
 ;;TODO: M-l M-f fold
 ;;      M-l M-u unfold
