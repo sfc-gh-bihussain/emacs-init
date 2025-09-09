@@ -11,17 +11,19 @@
 
 
 (setq custom-file (concat user-emacs-directory "custom.el"))
-(setq shell-file-name "C:/cygwin64/bin/bash.exe")
+(if (eq system-type 'windows-nt)
+    (setq shell-file-name "C:/cygwin64/bin/bash.exe"))
 (when (file-exists-p custom-file)
   (load custom-file))
-
+(setq mac-command-modifier 'meta)
 (setq initial-scratch-message nil)
 (setq-default message-log-max nil)
-(kill-buffer "*Messages*")
+(if (get-buffer "*Messages*")
+    (kill-buffer "*Messages*"))
 (tooltip-mode 0) ; Mouse over tooltip
 
 (winner-mode 1)
-
+(setq use-short-answers t)
 
 (setq inhibit-startup-message t)
 (setq backup-directory-alist (quote ((".*" . "~/.emacs_backups/"))))
@@ -46,9 +48,13 @@
   :config
   (command-log-mode 1))
 
+(use-package
+  try)
 (use-package swiper
   :bind
   (("C-s" . swiper)))
+
+(use-package counsel)
 (use-package ivy
   :diminish
   :bind (
@@ -108,6 +114,11 @@
   ;(:map treemacs-mode-map ("C-p" . treemacs-previous-line))
   )
 
+(use-package elpy
+  :ensure t)
+
+
+(load-file "~/.emacs.d/theme.el")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; STUFF POSSIBLY TO REMOVE
 ;; These are the defaults in 29 for me, idk why ppl set these lol

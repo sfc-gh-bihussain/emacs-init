@@ -1,3 +1,4 @@
+;; Loaded before GUI by emacs' runtime
 (add-hook 'emacs-startup-hook
 	  (lambda () (when (get-buffer "*scratch*")
 		       (kill-buffer "*scratch*")
