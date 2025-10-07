@@ -90,6 +90,7 @@
   (setq ivy-count-format "(%d/%d) ")
   ;; Idk what this does lol just recommended by oremacs.com/swiper
   (setq ivy-use-virtual-buffers t))
+(global-set-key "\C-x\C-b" 'ibuffer)
 (use-package ivy-rich
   :init
   (ivy-rich-mode 1))
@@ -114,6 +115,8 @@
   :config
   (lsp-mode t))
 
+(use-package yaml-mode
+  :ensure t)
 (use-package treemacs
   :ensure t
   :config
@@ -146,3 +149,43 @@
 (setq ido-file-extensions-order '(".txt" ".py" ".el" ".java"))
 (ido-mode 0)
 (put 'erase-buffer 'disabled nil)
+
+(use-package csv-mode)
+
+(defun xah-open-in-vscode ()
+  "Open current file or dir in vscode.
+URL `http://xahlee.info/emacs/emacs/emacs_open_in_vscode.html'
+
+Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
+  (interactive)
+  (let ((xpath (if buffer-file-name buffer-file-name (expand-file-name default-directory))))
+    (message "path is %s" xpath)
+    (cond
+     ((eq system-type 'darwin)
+      (shell-command (format "open -a Visual\\ Studio\\ Code.app %s" (shell-quote-argument xpath))))
+     ((eq system-type 'windows-nt)
+      (shell-command (format "code.cmd %s" (shell-quote-argument xpath))))
+     ((eq system-type 'gnu/linux)
+      (shell-command (format "code %s" (shell-quote-argument xpath)))))))
+
+(defun my/copy-buffer-file-name-to-clipboard ()
+  "Copy the current buffer's file name (full path) to the clipboard."
+  (interactive)
+  (let ((filename (buffer-file-name)))
+    (when filename
+      (kill-new filename)
+      (message "Copied buffer file name '%s' to the clipboard." filename))))
+(global-set-key (kbd "C-c p") 'my/copy-buffer-file-name-to-clipboard)
+
+(use-package vterm
+  :ensure t
+  :config
+  (setq vterm-timer-delay 0.01))
+
+(use-package ace-window
+  :ensure t
+  :init
+  (global-set-key (kbd "M-o") 'ace-window )
+  :config
+  (setq aw-dispatch-always t)
+  (setq aw-keys '(?p ?[ ?] ?\; ?')))
