@@ -22,6 +22,10 @@
     (kill-buffer "*Messages*"))
 (tooltip-mode 0) ; Mouse over tooltip
 
+
+(setq global-auto-revert-non-file-buffers t)
+(add-hook 'dired-mode-hook 'auto-revert-mode)
+
 (winner-mode 1)
 (setq use-short-answers t)
 
@@ -41,6 +45,14 @@
 
 
 (global-set-key (kbd "C-h C-e") 'package-list-packages)
+
+(defun my-open-init-file ()
+  "Open the user's Emacs initialization file."
+  (interactive)
+  (find-file user-init-file))
+
+(global-set-key (kbd "C-c i") 'my-open-init-file)
+
 
 (use-package
   command-log-mode
