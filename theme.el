@@ -13,7 +13,8 @@
 ;; todo: make thin bar on RHS of numbers, rounded, only 95% of the bar
 (set-face-attribute 'line-number nil
 		    :background nil
-		    :box nil)
+		    :box nil
+		    :height 120)
 
 (setq display-line-numbers-type 'relative)
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)

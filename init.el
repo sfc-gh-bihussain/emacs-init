@@ -23,8 +23,10 @@
 (tooltip-mode 0) ; Mouse over tooltip
 
 
-(setq global-auto-revert-non-file-buffers t)
+;(setq global-auto-revert-non-file-buffers t)
+(global-auto-revert-mode)
 (add-hook 'dired-mode-hook 'auto-revert-mode)
+
 
 (winner-mode 1)
 (setq use-short-answers t)
@@ -50,8 +52,13 @@
   "Open the user's Emacs initialization file."
   (interactive)
   (find-file user-init-file))
+(defun my-open-zshrc ()
+  "Opens the current user's .zshrc file."
+  (interactive)
+  (find-file "~/.zshrc"))
 
 (global-set-key (kbd "C-c i") 'my-open-init-file)
+(global-set-key (kbd "C-c z") 'my-open-zshrc)
 
 
 (use-package
@@ -130,7 +137,9 @@
   )
 
 (use-package elpy
-  :ensure t)
+  :ensure t
+  :init
+  (elpy-enable))
 
 
 (load-file "~/.emacs.d/theme.el")
@@ -189,3 +198,20 @@ Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
   :config
   (setq aw-dispatch-always t)
   (setq aw-keys '(?p ?[ ?] ?\; ?')))
+(setq select-enable-clipboard t)
+
+
+(defun vterm-at-current-location ()
+  "Open a new vterm buffer in the current buffer's directory."
+  (interactive)
+  (let ((default-directory (file-truename default-directory)))
+    (vterm)
+    (rename-uniquely)
+    ;(rename-buffer (format "*vterm: %s*" (file-name-nondirectory default-directory)))
+    ))
+(global-set-key (kbd "C-c t") 'vterm-at-current-location)
+(defun revert-buffer-no-confirm ()
+  "Revert buffer without confirmation."
+  (interactive)
+  (revert-buffer t t))
+(global-set-key (kbd "M-g M-g") 'revert-buffer-no-confirm)
