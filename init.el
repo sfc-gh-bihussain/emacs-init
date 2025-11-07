@@ -111,11 +111,13 @@
   :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package which-key
-  :init (which-key-mode)
+  :init
+  (which-key-mode)
+  (setq which-key-idle-delay 0.5)
+  (setq which-key-idle-secondary-delay 0.05)
   :diminish which-key-mode
   :config
-  (setq which-key-idle-delay 0.5)
-  (setq which-key-idle-secondary-delay 0.05))
+)
 
 
 (use-package lsp-java
@@ -124,10 +126,14 @@
 
 (use-package yaml-mode
   :ensure t)
+;;(setq treemacs-is-never-other-window t)
+
 (use-package treemacs
   :ensure t
   :config
-  (treemacs-follow-mode t)
+  (treemacs-follow-mode nil)
+  (treemacs-project-follow-mode)
+  (treemacs-display-current-project-exclusively)
   :bind
   (("M-0"       . treemacs-select-window)
    ("C-x t 1"   . treemacs-delete-other-windows)
@@ -135,6 +141,17 @@
   ; IDK Why this was here in my prev config 
   ;(:map treemacs-mode-map ("C-p" . treemacs-previous-line))
   )
+(setq doom-themes-treemacs-enable-variable-pitch nil)
+(set-face-attribute 'treemacs-file-face nil :family "JetBrains Mono" :height 120)
+
+(defun my-treemacs-projectile-hook ()
+  "Opens Treemacs with the current Projectile project as its root."
+  (when (projectile-project-p)  ;; Ensure we are in a Projectile project
+    (treemacs-add-and-display-current-project-exclusively)))
+
+(add-hook 'projectile-after-switch-project-hook 'my-treemacs-projectile-hook)
+(use-package treemacs-projectile)
+
 
 (use-package elpy
   :ensure t
@@ -215,3 +232,152 @@ Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
   (interactive)
   (revert-buffer t t))
 (global-set-key (kbd "M-g M-g") 'revert-buffer-no-confirm)
+
+(setq auto-save-file-name-transforms '((".*" "~/.emacs.d/autosaves/\\1" t)))
+
+;; Create the autosave directory if it doesn't exist
+(unless (file-exists-p "~/.emacs.d/autosaves/")
+  (make-directory "~/.emacs.d/autosaves/"))
+
+(use-package dashboard
+  :ensure t
+  :config
+  (dashboard-setup-startup-hook)
+  :custom
+  (dashboard-items '((recents . 5)
+                     ;;(bookmarks . 5)
+                     (projects . 5))) ; Display 5 recent projects
+  (dashboard-projects-backend 'projectile) ; Use Projectile for project lists
+  (dashboard-banner-logo-title nil)
+  (dashboard-startup-banner '("~/gifs/raiden_lets_dance_no_loop.gif")) ; Or nil for a list, or 'official for the Emacs logo
+  (dashboard-center-content t)
+  ;; vertically center content
+  (dashboard-vertically-center-content t)
+  (dashboard-icon-type 'nerd-icons)
+  ;; Format: "(icon title help action face prefix suffix)"
+(dashboard-navigator-buttons
+      `(;; line1
+        ((,(nerd-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
+          "Homepage"
+          "Browse homepage"
+          (lambda (&rest _) (browse-url "homepage")))
+         ("★" "Star" "Show stars" (lambda (&rest _) (show-stars)) warning)
+         ("?" "" "?/h" #'show-help nil "<" ">"))
+        ;; line 2
+        ((,(all-the-icons-faicon "linkedin" :height 1.1 :v-adjust 0.0)
+          "Linkedin"
+          ""
+          (lambda (&rest _) (browse-url "homepage")))
+         ("⚑" nil "Show flags" (lambda (&rest _) (message "flag")) error))))
+  (dashboard-startupify-list '(dashboard-insert-banner
+                                  dashboard-insert-newline
+                                  dashboard-insert-banner-title
+                                  dashboard-insert-newline
+                                  dashboard-insert-navigator
+                                  dashboard-insert-newline
+                                  dashboard-insert-init-info
+                                  dashboard-insert-items
+                                  dashboard-insert-newline
+                                  dashboard-insert-footer))
+  )
+
+(use-package projectile
+  :ensure t
+  :init
+  (setq projectile-project-search-path
+   '(("~/code/" . 1) "~/.emacs.d/" ))
+  :config
+  (global-set-key (kbd "M-p") 'projectile-command-map)
+  (projectile-mode +1)
+  )
+;; hack
+(projectile-discover-projects-in-directory "~/code/")
+
+;; https://kristofferbalintona.me/posts/202202211546/
+
+(use-package general
+  :ensure t)
+
+(use-package marginalia
+  :custom
+  (marginalia-max-relative-age 600) ; show up to 10 mins ago
+  (marginalia-align 'center)
+  (marginalia-truncate-width (/ (window-width) 2))
+  :init
+  (marginalia-mode))
+
+
+(use-package vertico
+  :custom
+  (vertico-count 13)                    ; Number of candidates to display
+  (vertico-resize t)
+  (vertico-cycle nil) ; Go from last to first candidate and first to last (cycle)?
+  :general
+  (:keymaps 'vertico-map
+            "<tab>" #'vertico-insert  ; Insert selected candidate into text area
+            "<escape>" #'minibuffer-keyboard-quit ; Close minibuffer
+            ;; NOTE 2022-02-05: Cycle through candidate groups
+            "C-M-n" #'vertico-next-group
+            "C-M-p" #'vertico-previous-group)
+  :config
+  (vertico-mode))
+
+
+(use-package magit)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; UI stuff:
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Side bars
+(set-fringe-mode 0) 
+(scroll-bar-mode 0)
+
+(tool-bar-mode 0)
+(menu-bar-mode 0)
+;; Ugly way to hide top bar. TODO Is there a "mode?"
+(setq default-frame-alist
+      (append
+       '((undecorated-round . t))
+       default-frame-alist))
+(line-number-mode 0)
+;; todo: make thin bar on RHS of numbers, rounded, only 95% of the bar
+(set-face-attribute 'line-number nil
+		    :background nil
+		    :box nil
+		    :height 120)
+
+(setq display-line-numbers-type 'relative)
+(add-hook 'prog-mode-hook 'display-line-numbers-mode)
+
+(setq visible-bell t)
+(if (find-font (font-spec :family "Cascadia Code"))
+    (set-face-attribute 'default nil :font "Consolas 18"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Theme stuff:
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Meh
+;; (load-theme 'tango-dark)
+;; modus theme meh
+
+(use-package nerd-icons
+  :ensure t)
+;; TODO BH
+;; (if (not (find-font (font-spec :name "NFM")))
+;;     (nerd-icons-install-fonts))
+(use-package doom-themes
+  :ensure t
+  :config
+  (setq doom-themes-enable-bold t
+	doom-themes-enable-italic t)
+    ;; todo: try nier theme https://github.com/merrittlj/automata-theme
+  (load-theme 'doom-one t)
+    ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+
+  (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+   (doom-themes-treemacs-config)
+   ;; Corrects (and improves) org-mode's native fontification.
+   ;; lol i dont use org tho
+  (doom-themes-org-config))

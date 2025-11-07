@@ -3,3 +3,6 @@ auto-save-list/*
 elpa/*
 recentf
 eshell/*
+elpy/*
+tramp
+transient/*
