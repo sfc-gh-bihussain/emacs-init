@@ -1,6 +1,6 @@
-
 ;;;;;;;;;;;;;;;;;;;;;;
 ;;Package management
+;; Runs before init.el
 ;;;;;;;;;;;;;;;;;;;;;;
 (require 'package)
 (setq package-enable-at-startup nil)
@@ -11,5 +11,3 @@
   (package-refresh-contents)
   (package-install 'use-package))
 ;;try <package name> uses package for current emacs session
-(use-package try
-  :ensure t)
