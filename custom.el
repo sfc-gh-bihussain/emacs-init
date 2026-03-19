@@ -9,15 +9,18 @@
  '(package-selected-packages
    '(all-the-icons-completion autothemer beacon blamer command-log-mode
 			      consult consult-theme counsel csv-mode
-			      dashboard direnv doom-modeline
-			      doom-themes dotenv-mode elpy general
+			      dashboard default-text-scale
+			      default-text-scale-mode direnv
+			      doom-modeline doom-themes dotenv-mode
+			      elpy expand-region general
 			      gnu-elpa-keyring-update ivy-rich
-			      lsp-java magit marginalia pinentry
-			      projectile rainbow-delimiters rg ripgrep
-			      ruff-format spaceline theme-looper
-			      treemacs-projectile try vertico vterm
-			      why-this yaml-mode))
- '(text-scale-mode-step 1.2))
+			      lsp-java magit marginalia orderless
+			      pinentry projectile rainbow-delimiters
+			      rg ripgrep ruff-format spaceline
+			      theme-looper treemacs-projectile try
+			      vertico vterm why-this yaml-mode))
+ '(text-scale-mode-step 1.2)
+ '(vterm-copy-mode-remove-fake-newlines nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

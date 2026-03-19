@@ -1,5 +1,3 @@
-
-
 ;; Refresher:
 ;; C-x C-e execute lisp
 ;; M-j execute and print on next line
@@ -34,7 +32,7 @@
 (tooltip-mode 0) ; Mouse over tooltip
 
 
-;(setq global-auto-revert-non-file-buffers t)
+					;(setq global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode)
 
 (add-hook 'dired-mode-hook 'auto-revert-mode)
@@ -61,10 +59,10 @@
 
 (global-unset-key (kbd "C-x k"))
 (defun volatile-kill-buffer ()
-   "Kill current buffer unconditionally."
-   (interactive)
-   (let ((buffer-modified-p nil))
-     (kill-buffer (current-buffer))))
+  "Kill current buffer unconditionally."
+  (interactive)
+  (let ((buffer-modified-p nil))
+    (kill-buffer (current-buffer))))
 
 ;; Unconditionally kill unmodified buffers.
 (global-set-key (kbd "C-x k") 'volatile-kill-buffer)
@@ -105,7 +103,6 @@
   :bind
   (("C-s" . swiper)
    ("M-s M-s" . swiper-all)))
-;;  ("C-i" . my/toggle-)
 
 (use-package counsel)
 (use-package ivy
@@ -114,7 +111,7 @@
 	 ("C-c v" . ivy-push-view)
 	 ("C-c C-v" . ivy-pop-view)
          :map ivy-minibuffer-map
-         ("TAB" . ivy-alt-done)	
+         ("TAB" . ivy-alt-done)
          ("C-l" . ivy-alt-done)
 	 ;; meh , i just use C-n an C-p
          ("C-j" . ivy-next-line)
@@ -136,8 +133,6 @@
   :init
   (ivy-rich-mode 1))
 
-
-
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
@@ -148,12 +143,14 @@
   (setq which-key-idle-secondary-delay 0.05)
   :diminish which-key-mode
   :config
-)
+  )
 
 
 (use-package lsp-java
   :config
   (lsp-mode t))
+
+(add-hook 'python-mode-hook 'lsp-deferred)
 
 (use-package yaml-mode
   :ensure t)
@@ -171,16 +168,20 @@
   (setq doom-themes-treemacs-theme "doom-colors")
   (doom-themes-treemacs-config)
   (treemacs-git-mode -1) ;; this was pausing rendering when i uodate branch with hundreds of thousands of line changes. i think if we change git mode to simple it might fix it too but i just disabled it for now
-;;  (set-face-attribute 'treemacs-file-face nil :family "JetBrains Mono" :height 120)
+  ;;  (set-face-attribute 'treemacs-file-face nil :family "JetBrains Mono" :height 120)
   :bind
   (("M-0"       . treemacs-select-window)
    ("C-x t 1"   . treemacs-delete-other-windows)
    ("C-x t t"   . treemacs))
-  ; IDK Why this was here in my prev config 
-  ;(:map treemacs-mode-map ("C-p" . treemacs-previous-line))
+					; IDK Why this was here in my prev config 
+					;(:map treemacs-mode-map ("C-p" . treemacs-previous-line))
   )
 
-(use-package blamer)
+(use-package blamer
+  :ensure t
+  :config
+  (add-hook 'sql-mode-hook 'blamer-mode)
+  (add-hook 'prog-mode-hook 'blamer-mode))
 
 (defun my-treemacs-projectile-hook ()
   "Opens Treemacs with the current Projectile project as its root."
@@ -193,20 +194,20 @@
 ;;   (add-hook 'projectile-after-switch-project-hook 'my-treemacs-projectile-hook))
 
 
-(use-package elpy
-  :ensure t
-  :init
-  (elpy-enable)
-  (setq elpy-rpc-virtualenv-path 'current))
+;; (use-package elpy
+;;   :ensure t
+;;   :init
+;;   (elpy-enable)
+;;   (setq elpy-rpc-virtualenv-path 'current))
 
 (use-package ruff-format
   :config
   (add-hook 'python-mode-hook 'ruff-format-on-save-mode))
 
-  (use-package pyvenv
-    :ensure t
-    :config
-    (pyvenv-mode 1))
+(use-package pyvenv
+  :ensure t
+  :config
+  (pyvenv-mode 1))
 
 (use-package direnv
   :ensure t
@@ -252,32 +253,122 @@ Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
      ((eq system-type 'gnu/linux)
       (shell-command (format "code %s" (shell-quote-argument xpath)))))))
 
+(use-package posframe
+  :ensure t
+  :config
+  (defun my/notify--hide ()
+    (posframe-hide " *my-notify*")
+    (remove-hook 'post-command-hook #'my/notify--hide))
+
+  (defun my/notify (msg)
+    "Show MSG in a centered posframe popup; dismisses on next input or after 2s."
+    (posframe-show " *my-notify*"
+                   :string (concat "\n  " msg "  \n")
+                   :poshandler #'posframe-poshandler-frame-center
+                   :timeout 2
+                   :border-width 2
+                   :border-color (face-attribute 'default :foreground)
+                   :internal-border-width 8)
+    (run-with-timer 0 nil (lambda ()
+                            (add-hook 'post-command-hook #'my/notify--hide)))))
+
+(defun my/copy-to-clipboard (text msg)
+  "Copy TEXT to clipboard and show MSG as a centered popup."
+  (kill-new text)
+  (my/notify msg))
+
 (defun my/copy-buffer-file-name-to-clipboard ()
   "Copy the current buffer's file name (full path) to the clipboard."
   (interactive)
-  (let ((filename (buffer-file-name)))
-    (when filename
-      (kill-new filename)
-      (message "Copied buffer file name '%s' to the clipboard." filename))))
-(global-set-key (kbd "C-c p") 'my/copy-buffer-file-name-to-clipboard)
+  (when buffer-file-name
+    (my/copy-to-clipboard buffer-file-name
+                          (format "Copied full path: %s" buffer-file-name))))
+
+(defun my/copy-file-basename-to-clipboard ()
+  "Copy the current buffer's file name (basename only) to the clipboard."
+  (interactive)
+  (when buffer-file-name
+    (let ((basename (file-name-nondirectory buffer-file-name)))
+      (my/copy-to-clipboard basename
+                            (format "Copied filename: %s" basename)))))
+
+(defun my/copy-region-as-xml ()
+  "Copy the highlighted region wrapped in XML tags with full path and line numbers."
+  (interactive)
+  (if (use-region-p)
+      (let* ((start      (region-beginning))
+             (end        (region-end))
+             (text       (buffer-substring-no-properties start end))
+             (path       (or buffer-file-name (buffer-name)))
+             (start-line (line-number-at-pos start))
+             (end-line   (line-number-at-pos end))
+             (xml        (format "<region path=\"%s\" start-line=\"%d\" end-line=\"%d\">\n%s\n</region>"
+                                 path start-line end-line text)))
+        (kill-new xml)
+        (let* ((preview    (replace-regexp-in-string "\n" "↵" text))
+	       (truncated  (if (> (length preview) 60)
+			       (concat (substring preview 0 60) "…")
+                             preview)))
+          (my/notify (format "Copied %s:%d-%d\n  %s" path start-line end-line truncated))))
+    (my/notify "No active region.")))
+
+(global-set-key (kbd "C-c C-p") 'my/copy-file-basename-to-clipboard)
+(global-set-key (kbd "C-c p")   'my/copy-buffer-file-name-to-clipboard)
+(global-set-key (kbd "C-c r")   'my/copy-region-as-xml)
 
 (use-package vterm
   :ensure t
   :config
+  ;; Set vterm text buffering delay
   (setq vterm-timer-delay 0.01)
   :bind (:map vterm-mode-map
 	      ("M-0" . nil)
 	      ("M-p" . nil)
-  ))
+	      ("M-'" . nil)
+	      ))
 
-(defun my/vterm-update-default-directory (orig-func title)
-  "Update `default-directory` when vterm's title changes, if it contains a valid directory."
-  (let ((dir (string-trim-left (concat (nth 1 (split-string title ":")) "/"))))
-    (when (file-directory-p dir)
-      (cd-absolute dir)))
+(defun vterm-at-current-location ()
+  "Open a new vterm buffer in the current buffer's directory."
+  (interactive)
+  (let ((default-directory (file-truename default-directory)))
+    (vterm)
+    (my/vterm-rename-buffer-unique)))
+
+(defun my/vterm-rename-buffer-unique ()
+  "Rename current vterm buffer based on git repo/branch or directory, with unique suffix."
+  (let* ((git-root (shell-command-to-string "git rev-parse --show-toplevel 2>/dev/null"))
+         (git-root (string-trim git-root))
+         (name (if (and git-root (not (string-empty-p git-root)))
+                   (let ((repo (file-name-nondirectory git-root))
+                         (branch (string-trim (shell-command-to-string "git branch --show-current 2>/dev/null"))))
+                     (format "%s/%s" repo branch))
+                 (file-name-nondirectory (directory-file-name default-directory)))))
+    (rename-buffer (generate-new-buffer-name (format "*vterm: %s*" name)))))
+
+(global-set-key (kbd "C-c t") 'vterm-at-current-location)
+(defun revert-buffer-no-confirm ()
+  "Revert buffer without confirmation."
+  (interactive)
+  (revert-buffer t t))
+
+
+(defun my/vterm-update-buffer-and-directory (orig-func title)
+  "Update vterm buffer name and `default-directory` from shell info.
+Title format: 'name|/path/to/dir' where name is repo/branch, cortex[conn] repo/branch, or dirname."
+  (let* ((parts (split-string title "|"))
+         (name-part (car parts))
+         (dir-part (cadr parts)))
+    ;; Update default-directory
+    (when (and dir-part (file-directory-p dir-part))
+      (cd-absolute dir-part))
+    ;; Update buffer name (with unique suffix if collision)
+    (when (and name-part (not (string-empty-p name-part)))
+      (let ((new-name (format "*vterm: %s*" name-part)))
+        (unless (string= (buffer-name) new-name)
+          (rename-buffer (generate-new-buffer-name new-name))))))
   (funcall orig-func title))
 
-(advice-add 'vterm--set-title :around #'my/vterm-update-default-directory)
+(advice-add 'vterm--set-title :around #'my/vterm-update-buffer-and-directory)
 
 (use-package ace-window
   :ensure t
@@ -285,31 +376,14 @@ Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
   (global-set-key (kbd "M-o") 'ace-window )
   :config
   (setq aw-dispatch-always t)
-  (setq aw-keys '(?p ?w ?o ?q ?e)))
-
-(custom-set-faces
- '(aw-leading-char-face
-   ((t (
-	;;:inherit ace-jump-face-foreground
-		 :height 3.0)))))
-
+  (setq aw-keys '(?p ?w ?o ?q ?e))
+  :custom-face
+  (aw-leading-char-face ((t (:foreground "OrangeRed" :weight bold :height 5.0))))
+  (aw-background-face   ((t (:foreground "gray50"))))
+  (aw-mode-line-face    ((t (:foreground "DeepSkyBlue" :weight bold)))))
 
 (setq select-enable-clipboard t)
 
-
-(defun vterm-at-current-location ()
-  "Open a new vterm buffer in the current buffer's directory."
-  (interactive)
-  (let ((default-directory (file-truename default-directory)))
-    (vterm)
-    (rename-uniquely)
-    ;(rename-buffer (format "*vterm: %s*" (file-name-nondirectory default-directory)))
-    ))
-(global-set-key (kbd "C-c t") 'vterm-at-current-location)
-(defun revert-buffer-no-confirm ()
-  "Revert buffer without confirmation."
-  (interactive)
-  (revert-buffer t t))
 (global-set-key (kbd "M-g M-g") 'revert-buffer-no-confirm)
 
 (setq auto-save-file-name-transforms '((".*" "~/.emacs.d/autosaves/\\1" t)))
@@ -333,16 +407,16 @@ Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
   (dashboard-vertically-center-content t)
   (dashboard-icon-type 'nerd-icons)
   (dashboard-startupify-list '(dashboard-insert-banner
-                               dashboard-insert-newline
-                               dashboard-insert-banner-title
-                               dashboard-insert-newline
-                               dashboard-insert-navigator
-                               dashboard-insert-newline
-                               dashboard-insert-init-info
-                               dashboard-insert-items
-                               dashboard-insert-newline
-                               dashboard-insert-footer)))
-  ;; Format: "(icon title help action face prefix suffix)"
+			       dashboard-insert-newline
+			       dashboard-insert-banner-title
+			       dashboard-insert-newline
+			       dashboard-insert-navigator
+			       dashboard-insert-newline
+			       dashboard-insert-init-info
+			       dashboard-insert-items
+			       dashboard-insert-newline
+			       dashboard-insert-footer)))
+;; Format: "(icon title help action face prefix suffix)"
 ;; (dashboard-navigator-buttons
 ;;       `(;; line1
 ;;         ((,(nerd-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
@@ -365,14 +439,16 @@ Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
   :ensure t
   :init
   (setq projectile-project-search-path
-   '("~/code/"  "~/.emacs.d/" ))
+	'("~/code/"  "~/.emacs.d/" ))
   :config
   (global-set-key (kbd "M-p") 'projectile-command-map)
   (projectile-mode +1)
   (setq projectile-use-git-grep t)
   (setq projectile-switch-project-action 'projectile-run-vterm)
   (setq projectile-enable-caching t)
-  (projectile-discover-projects-in-directory "~/code/"))
+  (projectile-discover-projects-in-directory "~/code/")
+  (projectile-discover-projects-in-directory "~/code/coco_crossing")
+  )
 ;; hack
 ;;(projectile-discover-projects-in-directory "~/code/")
 
@@ -465,9 +541,9 @@ Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
   :config
   (setq doom-themes-enable-bold t
 	doom-themes-enable-italic t)
-    ;; todo: try nier theme https://github.com/merrittlj/automata-theme
+  ;; todo: try nier theme https://github.com/merrittlj/automata-theme
   (load-theme 'doom-peacock t)
-    ;; Enable flashing mode-line on errors
+  ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config))
 
 (setq custom-safe-themes t)
@@ -483,7 +559,7 @@ Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
 (add-hook 'emacs-startup-hook 'theme-looper-enable-random-theme)
 ;;(load-theme 'automata t)
 ;; Just to use consult theme to page thru themes while seeing them
-;;(use-package consult)
+(use-package consult)
 
 ;; (use-package doom-modeline
 ;;   :ensure t
@@ -493,7 +569,42 @@ Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
 (use-package spaceline
   :config (spaceline-emacs-theme))
 
-
-
 ;;; testing rounded fringes
+(put 'downcase-region 'disabled nil)
 
+(use-package default-text-scale
+  :config (default-text-scale-mode))
+
+
+(defun dump-vterm-to-scratch ()
+  "Copy vterm buffer to *scratch* without trailing empty lines, keeping colors."
+  (interactive)
+  (unless (derived-mode-p 'vterm-mode)
+    (user-error "This command only works in vterm buffers"))
+  
+  (let* ((vterm-buffer (current-buffer))
+         (scratch-buf (get-buffer-create "*scratch*"))
+         ;; 1. Get the content as a string WITH text properties (colors)
+         (content (buffer-substring (point-min) (point-max))))
+    
+    (with-current-buffer scratch-buf
+      (goto-char (point-max))
+      ;; 2. Insert content
+      (let ((start (point)))
+        (insert content)
+        ;; 3. Strip the extra terminal 'empty' padding lines at the end
+        (save-excursion
+          (goto-char (point-max))
+          (delete-blank-lines)))
+      
+      ;; 4. Move view to the bottom
+      (goto-char (point-max)))
+    
+    ;; 5. Switch focus to scratch
+    (switch-to-buffer scratch-buf)
+    (message "Vterm dumped and cleaned!")))
+
+(global-set-key (kbd "M-'") 'dump-vterm-to-scratch)
+(use-package expand-region
+  :config
+  (global-set-key (kbd "M-[") 'er/expand-region))
