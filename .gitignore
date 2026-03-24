@@ -6,3 +6,9 @@ eshell/*
 elpy/*
 tramp
 transient/*
+autosaves/
+.dap-breakpoints
+.lsp-session-v1
+.mc-lists.el
+logview-cache.extmap
+projectile-bookmarks.eld
