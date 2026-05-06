@@ -1,27 +1,4 @@
 ;; -*- lexical-binding: t -*-
-;; todo bh:
-;; c-x b and c-x c-b with preview so we can review all our ope nvterms and close them
-;; agent shell keybinds:
-;;reset context
-;; switch working dir
-;; look into the related packages,in https://github.com/xenodium/agent-shell
-;;allow me to type a new msg while cur happening
-;;see model name/effort
-
-;; Refresher:
-;; C-x C-e execute lisp
-;; M-j execute and print on next line
-;; M-: eval lisp in minibuffer
-;; descibe function C-h f
-;; descibe variable C-h v
-;; describe package C-h p
-;; C-x C--/+ to resize font
-
-;; Possibly need to set the variables for a major mode before enabling the mode
-;; TODO:
-;; - A way to copy the nth line of the previous terminal command output
-;; - faster way in vterm to enable copy mode
-
 
 ;;══════════════════════════════════════════════════════════════════════════════
 ;;  BOOTSTRAP
