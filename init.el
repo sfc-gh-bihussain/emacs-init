@@ -43,12 +43,12 @@
 
 (setq-default message-log-max nil)
 
-(defun insert-current-date ()
+(defun my/insert-current-date ()
   "Insert the current date at point."
   (interactive)
   (insert (format-time-string "%Y-%m-%d")))
 
-(global-set-key (kbd "C-c d") 'insert-current-date)
+(global-set-key (kbd "C-c d") 'my/insert-current-date)
 
 
 ;; I commented this out on 2026-05-05 because i think i need this to see debug messages/warnings etc. from failing elisp commands
@@ -103,7 +103,7 @@
 
 (global-set-key (kbd "C-h C-e") 'package-list-packages)
 
-(defun volatile-kill-buffer ()
+(defun my/volatile-kill-buffer ()
   "Kill current buffer unconditionally."
   (interactive)
   (set-buffer-modified-p nil)
@@ -111,19 +111,19 @@
 ;; Remove prompt to kill buffer with active process
 (setq kill-buffer-query-functions (delq 'process-kill-buffer-query-function kill-buffer-query-functions))
 ;; Unconditionally kill unmodified buffers.
-(global-set-key (kbd "C-x k") 'volatile-kill-buffer)
+(global-set-key (kbd "C-x k") 'my/volatile-kill-buffer)
 
-(defun my-open-init-file ()
+(defun my/open-init-file ()
   "Open the user's Emacs initialization file."
   (interactive)
   (find-file user-init-file))
-(defun my-open-zshrc ()
+(defun my/open-zshrc ()
   "Opens the current user's .zshrc file."
   (interactive)
   (find-file "~/.zshrc"))
 
-(global-set-key (kbd "C-c i") 'my-open-init-file)
-(global-set-key (kbd "C-c z") 'my-open-zshrc)
+(global-set-key (kbd "C-c i") 'my/open-init-file)
+(global-set-key (kbd "C-c z") 'my/open-zshrc)
 
 (use-package try)
 
@@ -137,7 +137,7 @@
 (global-set-key (kbd "M-s M-s") 'consult-line-multi)
 (global-set-key "\C-x\C-b" 'ibuffer)
 
-(defun xah-open-in-vscode ()
+(defun my/open-in-vscode ()
   "Open current file or dir in vscode.
 URL `http://xahlee.info/emacs/emacs/emacs_open_in_vscode.html'
 
@@ -215,14 +215,14 @@ Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
 (global-set-key (kbd "C-c p")   'my/copy-buffer-file-name-to-clipboard)
 (global-set-key (kbd "C-c r")   'my/copy-region-as-xml)
 
-(defun revert-buffer-no-confirm ()
+(defun my/revert-buffer-no-confirm ()
   "Revert buffer without confirmation."
   (interactive)
   (revert-buffer t t))
 
 (setq select-enable-clipboard t)
 (setq save-interprogram-paste-before-kill t)
-(global-set-key (kbd "M-g M-g") 'revert-buffer-no-confirm)
+(global-set-key (kbd "M-g M-g") 'my/revert-buffer-no-confirm)
 
 (setq auto-save-file-name-transforms '((".*" "~/.emacs.d/autosaves/\\1" t)))
 

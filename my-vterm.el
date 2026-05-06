@@ -1,7 +1,7 @@
 ;; -*- lexical-binding: t -*-
 ;;; my-vterm.el --- vterm config and helpers
 
-(defun dump-vterm-to-scratch ()
+(defun my/dump-vterm-to-scratch ()
   "Copy current buffer to *scratch* without trailing empty lines, keeping colors."
   (interactive)
 
@@ -26,11 +26,11 @@
   :bind (:map vterm-mode-map
 	      ("M-0" . nil)
 	      ("M-p" . nil)
-	      ("M-'" . dump-vterm-to-scratch)
+	      ("M-'" . my/dump-vterm-to-scratch)
 	      ("C-c d" . (lambda () (interactive)
 			   (vterm-send-string (format-time-string "%Y-%m-%d"))))))
 
-(defun vterm-at-current-location ()
+(defun my/vterm-at-current-location ()
   "Open a new vterm buffer in the current buffer's directory."
   (interactive)
   (let ((default-directory (file-truename default-directory)))
@@ -48,7 +48,7 @@
                  (file-name-nondirectory (directory-file-name default-directory)))))
     (rename-buffer (generate-new-buffer-name (format "*vterm: %s*" name)))))
 
-(global-set-key (kbd "C-c t") 'vterm-at-current-location)
+(global-set-key (kbd "C-c t") 'my/vterm-at-current-location)
 
 (defun my/vterm-update-buffer-and-directory (orig-func title)
   "Update vterm buffer name and `default-directory` from shell info.
@@ -68,7 +68,7 @@ Title format: `name|/path/to/dir' where name is repo/branch, cortex[conn] repo/b
 
 (advice-add 'vterm--set-title :around #'my/vterm-update-buffer-and-directory)
 
-(global-set-key (kbd "M-'") 'dump-vterm-to-scratch)
+(global-set-key (kbd "M-'") 'my/dump-vterm-to-scratch)
 
 ;; agent generated stuff to allow clicking on file paths in vterm
 ;; (commented out — timer errors polluting minibuffer)
