@@ -1,23 +1,28 @@
 ;; -*- lexical-binding: t -*-
 ;;; my-vterm.el --- vterm config and helpers
 
-(defun my/dump-vterm-to-scratch ()
-  "Copy current buffer to *scratch* without trailing empty lines, keeping colors."
+(defun my/dump-buffer-to-snapshot ()
+  "Copy current buffer to a new *dump: NAME* buffer, preserving syntax highlighting.
+For vterm buffers, ANSI colors are carried over via text properties.
+For all other buffers, the source major mode is activated with hooks suppressed
+so font-lock re-fontifies without triggering LSP/flycheck side effects."
   (interactive)
-
-  (let* ((scratch-buf (get-buffer-create "*scratch*"))
-         (content (buffer-substring (point-min) (point-max))))
-    (with-current-buffer scratch-buf
-      (goto-char (point-max))
+  (let* ((src-name (buffer-name))
+         (src-mode major-mode)
+         (is-vterm (derived-mode-p 'vterm-mode))
+         (content  (buffer-substring (point-min) (point-max)))
+         (dest     (generate-new-buffer (format "*dump: %s*" src-name))))
+    (with-current-buffer dest
       (insert content)
-      (save-excursion
-        (goto-char (point-max))
-        (delete-blank-lines))
-      (goto-char (point-max)))
-
-    ;; 5. Switch focus to scratch
-    (switch-to-buffer scratch-buf)
-    (message "Vterm dumped and cleaned!")))
+      (goto-char (point-max))
+      (delete-blank-lines)
+      (unless is-vterm
+        (let ((delay-mode-hooks t))
+          (funcall src-mode))
+        (font-lock-ensure))
+      (goto-char (point-min)))
+    (switch-to-buffer dest)
+    (message "Snapshot: %s" (buffer-name dest))))
 
 (use-package vterm
   :config
@@ -26,7 +31,7 @@
   :bind (:map vterm-mode-map
 	      ("M-0" . nil)
 	      ("M-p" . nil)
-	      ("M-'" . my/dump-vterm-to-scratch)
+	      ("M-'" . my/dump-buffer-to-snapshot)
 	      ("C-c d" . (lambda () (interactive)
 			   (vterm-send-string (format-time-string "%Y-%m-%d"))))))
 
@@ -68,7 +73,7 @@ Title format: `name|/path/to/dir' where name is repo/branch, cortex[conn] repo/b
 
 (advice-add 'vterm--set-title :around #'my/vterm-update-buffer-and-directory)
 
-(global-set-key (kbd "M-'") 'my/dump-vterm-to-scratch)
+(global-set-key (kbd "M-'") 'my/dump-buffer-to-snapshot)
 
 ;; agent generated stuff to allow clicking on file paths in vterm
 ;; (commented out — timer errors polluting minibuffer)

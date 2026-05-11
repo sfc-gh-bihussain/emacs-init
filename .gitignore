@@ -12,3 +12,12 @@ autosaves/
 .mc-lists.el
 logview-cache.extmap
 projectile-bookmarks.eld
+/.agent-shell/
+*.elc
+.emacs.desktop
+.emacs.desktop.lock
+.persistent-scratch
+agent/
+eln-cache/
+url/
+projects

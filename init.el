@@ -90,6 +90,23 @@
 ;; Unconditionally kill unmodified buffers.
 (global-set-key (kbd "C-x k") 'my/volatile-kill-buffer)
 
+(defvar my/quick-hide-buffer-regexps
+  '("\\*Compile-Log\\*"
+    "\\*Warnings\\*"
+    "\\*nova-.*\\*"))
+
+(defun my/quick-hide-buffer ()
+  "Close all windows showing a blacklisted buffer; bury if it's the only window."
+  (interactive)
+  (dolist (win (window-list))
+    (let ((name (buffer-name (window-buffer win))))
+      (when (cl-some (lambda (re) (string-match-p re name))
+                     my/quick-hide-buffer-regexps)
+        (if (one-window-p) (bury-buffer (window-buffer win))
+          (delete-window win))))))
+
+(global-set-key (kbd "M-ESC") #'my/quick-hide-buffer)
+
 (defun my/open-init-file ()
   "Open the user's Emacs initialization file."
   (interactive)
@@ -328,6 +345,10 @@ Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
 
 (use-package yaml-mode)
 
+(use-package markdown-mode
+  :config
+  (setq browse-url-browser-function 'browse-url-default-macosx-browser))
+
 (use-package treemacs
   :functions (doom-themes-treemacs-config)
   :config
@@ -438,8 +459,6 @@ Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
 (setq visible-bell t)
 (set-face-attribute 'default nil :font "JetBrains Mono")
 
-;; Run at startup
-(my/set-font-by-screen-size)
 
 (use-package beacon
   :config
@@ -751,9 +770,9 @@ Limits to LIMIT entries (default 40). Descriptions fetched in one Python call."
            (geometry (assoc 'geometry monitor))
            (width (nth 3 geometry))) ;; Gets physical monitor width
       (cond
-       ((>= width 3840) (set-face-attribute 'default frame :height 250))
-       ((>= width 2560) (set-face-attribute 'default frame :height 180))
-       (t               (set-face-attribute 'default frame :height 110))))))
+       ((>= width 3840) (set-face-attribute 'default frame :height 280))
+       ((>= width 2560) (set-face-attribute 'default frame :height 200))
+       (t               (set-face-attribute 'default frame :height 140))))))
 
 (use-package dispwatch
   :ensure t
