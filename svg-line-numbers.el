@@ -12,7 +12,7 @@
                             (color-name-to-rgb c2))))
     (apply #'color-rgb-to-hex (append blended '(2)))))
 
-(setq display-line-numbers-type 'relative)
+(setq display-line-numbers-type t)
 
 (defun my/ln--update-faces ()
   "Set line-number faces using current theme colors."

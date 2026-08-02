@@ -40,6 +40,7 @@
 (winner-mode 1)
 (desktop-save-mode 1)
 (setq desktop-restore-eager 5)
+(setq desktop-restore-frames t)
 
 (use-package persistent-scratch
   :config
@@ -110,7 +111,7 @@
 (defun my/open-init-file ()
   "Open the user's Emacs initialization file."
   (interactive)
-  (find-file user-init-file))
+  (find-file (locate-user-emacs-file "init.el")))
 (defun my/open-zshrc ()
   "Opens the current user's .zshrc file."
   (interactive)
@@ -236,7 +237,7 @@ Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
 
 (defun my/reload-init ()
   (interactive)
-  (load-file user-init-file))
+  (load-file (expand-file-name "init.el" user-emacs-directory)))
 (global-set-key (kbd "<f5>") #'my/reload-init)
 
 
@@ -269,7 +270,8 @@ Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
 
 ;; https://kristofferbalintona.me/posts/202202211546/
 (use-package general
-  :ensure t)
+  :ensure t
+  :demand t)
 
 (use-package marginalia
   :custom
@@ -423,15 +425,19 @@ Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
   :diminish
   :init
   (setq projectile-project-search-path
-	'("~/code/"  "~/.emacs.d/" ))
+	'("~/code/" "~/code/coco_crossing" "~/code/coco_crossing/workloads"))
   :config
   (global-set-key (kbd "M-p") 'projectile-command-map)
   (projectile-mode +1)
   (setq projectile-use-git-grep t)
   (setq projectile-switch-project-action 'projectile-run-vterm)
   (setq projectile-enable-caching t)
-  (projectile-discover-projects-in-directory "~/code/")
-  (projectile-discover-projects-in-directory "~/code/coco_crossing"))
+  (projectile-discover-projects-in-search-path))
+
+(with-eval-after-load 'projectile
+  ;; Run cleanup 300 seconds (5 minutes) after Emacs becomes idle
+  ;; The 't' at the end makes it repeat every time Emacs goes idle again
+  (run-with-idle-timer 300 t #'projectile-reset-known-projects))
 
 (use-package magit)
 
@@ -489,11 +495,53 @@ Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
 	    :rev "78c33f36b2ab9cc8b5925c57779d51fd2c1fc158")
   :config
   (require 'nova-vertico)
-  (setq nova-vertico-depth-2-max-width (round (* (frame-width) 0.75)))
+  (setq nova-vertico-depth-2-max-width most-positive-fixnum)
+  (advice-add 'vertico-posframe--show :before
+              (defun my/nova-sync-posframe-width (&rest _)
+                ;; Bound by both the frame and the current monitor's workarea —
+                ;; the editing frame can extend past the visible screen after a
+                ;; monitor switch, and posframe-show fails when min-width
+                ;; exceeds what the monitor can actually display.
+                (let* ((char-px (frame-char-width))
+                       (mon-px (or (nth 3 (assoc 'workarea
+                                                 (frame-monitor-attributes)))
+                                   0))
+                       (mon-cols (if (and (> char-px 0) (> mon-px 0))
+                                     (/ mon-px char-px)
+                                   most-positive-fixnum))
+                       (effective (min (frame-width) mon-cols)))
+                  (setq vertico-posframe-min-width
+                        (max 40 (round (* effective 0.85)))))))
   (nova-vertico-mode 1)
   (require 'nova-corfu)
   (global-corfu-mode 1)
   (nova-corfu-mode 1))
+
+;; nova--show-side-left calls posframe-show without :parent-frame, so the
+;; decoration frame gets parented to whatever (selected-frame) is at the time —
+;; often an agent-shell child frame, which then gets raised to the foreground.
+;; Fix: derive the correct parent from the vertico posframe, delete any stale
+;; cached frame with the wrong parent, then inject :parent-frame into the call.
+(defun my/nova-fix-parent-frame (orig-fn name)
+  (let* ((pos-frame (nova--get-local nova--wrapped-posframe name))
+         (desired-parent (and pos-frame (frame-parent pos-frame)))
+         (buf (get-buffer name))
+         (existing (and buf (buffer-local-value 'posframe--frame buf))))
+    (when (and desired-parent existing (frame-live-p existing)
+               (not (eq (frame-parameter existing 'parent-frame) desired-parent)))
+      (posframe-delete name))
+    (if (not desired-parent)
+        (funcall orig-fn name)
+      (cl-letf* ((orig-ps (symbol-function 'posframe-show))
+                 ((symbol-function 'posframe-show)
+                  (lambda (buf &rest args)
+                    (unless (plist-member args :parent-frame)
+                      (setq args (nconc args (list :parent-frame desired-parent))))
+                    (apply orig-ps buf args))))
+        (funcall orig-fn name)))))
+(with-eval-after-load 'nova-side-left
+  (advice-add 'nova--show-side-left :around #'my/nova-fix-parent-frame))
+
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 ;; Ghostty 0x96f port - swap the doom-peacock load above for this to use it:
 ;;   (load-theme '0x96f t)
@@ -780,5 +828,14 @@ Limits to LIMIT entries (default 40). Descriptions fetched in one Python call."
   (dispwatch-mode 1)
   ;; Add the named function to the hook
   (add-hook 'dispwatch-display-change-hooks #'my/adjust-font-by-monitor)
+  ;; Drop cached posframes — they keep stale pixel dimensions from the previous
+  ;; monitor and overflow the new one until recreated.
+  (add-hook 'dispwatch-display-change-hooks
+            (lambda (&rest _)
+              (when (fboundp 'vertico-posframe-cleanup)
+                (vertico-posframe-cleanup))
+              (when (fboundp 'nova-delete-all)
+                (nova-delete-all))))
   ;; Run it once immediately to set the font for current frames
   (my/adjust-font-by-monitor))
+(global-set-key (kbd "<f11>") toggle-frame-fullscreen)
