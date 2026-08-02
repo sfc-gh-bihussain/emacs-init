@@ -1,5 +1,34 @@
 ;; -*- lexical-binding: t -*-
 
+(declare-function agent-shell-start "agent-shell")
+(declare-function agent-shell--state "agent-shell")
+(declare-function agent-shell--enqueue-request "agent-shell")
+(declare-function agent-shell-ui-toggle-fragment-at-point "agent-shell")
+(declare-function shell-maker-busy "shell-maker")
+(declare-function shell-maker-submit "shell-maker")
+(declare-function shell-maker--prompt-begin-position "shell-maker")
+(declare-function agent-shell-anthropic-start-claude-code "agent-shell-anthropic")
+(declare-function agent-shell-anthropic-make-claude-code-config "agent-shell-anthropic")
+
+(use-package agent-shell
+  :ensure t
+  :bind ("C-x C-r" . agent-shell-restart)
+  :hook (agent-shell-mode . (lambda ()
+			      (local-set-key (kbd "M-a") #'move-beginning-of-line)
+			      (setq-local comint-scroll-to-bottom-on-output 'all)))
+  :custom
+  (agent-shell-cursor-acp-command '("cursor-agent" "acp"))
+  (agent-shell-thought-process-expand-by-default t)
+  (agent-shell-show-welcome-message nil)
+  (agent-shell-header-style nil)
+  (agent-shell-confirm-interrupt nil)
+  :config
+  (advice-add 'agent-shell--make-header-model :filter-return
+              (lambda (result)
+                (when-let ((model-id (map-elt result :model-id)))
+                  (map-put! result :model-name model-id))
+                result)))
+
 (defun my/agent-shell-start ()
   "Start agent shell in `default-directory'."
   (interactive)
@@ -14,26 +43,6 @@
 ;; cursor-agent >= 2026.04 speaks ACP natively via `cursor-agent acp`,
 ;; so we skip the flaky cursor-agent-acp npm shim and talk to the CLI directly.
 ;; See https://cursor.com/docs/cli/acp
-(use-package agent-shell
-  :ensure t
-  :bind (("C-c a" . my/agent-shell-start)
-         ("C-c A" . my/agent-shell-start-in-dir)
-         ("C-x C-r" . agent-shell-restart))
-  :hook (agent-shell-mode . (lambda ()
-			      (local-set-key (kbd "M-a") #'move-beginning-of-line)
-			      (setq-local comint-scroll-to-bottom-on-output 'all)))
-  :custom
-  (agent-shell-cursor-acp-command '("cursor-agent" "acp"))
-  (agent-shell-thought-process-expand-by-default t)
-  :config
-  (setq agent-shell-show-welcome-message nil)
-  (setq agent-shell-header-style nil)
-  (setq agent-shell-confirm-interrupt nil)
-  (advice-add 'agent-shell--make-header-model :filter-return
-              (lambda (result)
-                (when-let ((model-id (map-elt result :model-id)))
-                  (map-put! result :model-name model-id))
-                result)))
 
 (defvar-local my/agent-pending-input "")
 (defvar-local my/agent-pending-overlay nil)
@@ -118,6 +127,8 @@
           (agent-shell--enqueue-request :prompt text)))
     (my/agent-shell-collapse-thinking-blocks)
     (shell-maker-submit)))
+
+(defvar agent-shell-mode-map)
 
 (with-eval-after-load 'agent-shell
   (keymap-set agent-shell-mode-map "RET" #'my/agent-shell-submit-or-queue)
@@ -239,51 +250,180 @@
 
 (advice-add 'consult-line :after #'my/consult-line-reveal-markdown-overlays)
 
-(defvar-local my/agent-history-shown nil)
-(defvar my/agent-shell-suppress-next-transcript nil)
+(defcustom my/agent-shell-session-list-limit 50
+  "Maximum number of past sessions shown in `my/agent-shell-pick-session'."
+  :type 'integer
+  :group 'agent-shell)
 
-(advice-add 'agent-shell-restart :before
-            (lambda (&rest args)
-              (setq my/agent-shell-suppress-next-transcript
-                    (null (plist-get args :session-id))))
-            '((name . my/agent-shell-suppress-transcript-on-fresh-restart)))
+(defun my/agent-shell--prefetch-summaries (files)
+  "Return alist of (FILE . plist) with :cwd :title :last-prompt for each in FILES.
+Streams each JSONL line and captures the last `aiTitle' / `lastPrompt' seen
+plus the first non-empty `cwd'."
+  (when files
+    (let* ((py "import json,sys
+for p in sys.argv[1:]:
+    t=lp=cwd=''
+    try:
+        for l in open(p):
+            try:
+                o=json.loads(l); tp=o.get('type')
+                if tp=='ai-title':
+                    v=o.get('aiTitle','')
+                    if v: t=v
+                elif tp=='last-prompt':
+                    v=o.get('lastPrompt','')
+                    if v: lp=v
+                if not cwd:
+                    c=o.get('cwd')
+                    if c: cwd=c
+            except: pass
+    except: pass
+    print('\\t'.join(s.replace(chr(10),' ').replace(chr(9),' ') for s in (t,lp,cwd)))")
+           (cmd (concat "python3 -c " (shell-quote-argument py) " "
+                        (mapconcat #'shell-quote-argument files " ")))
+           (out (shell-command-to-string cmd))
+           (lines (split-string out "\n")))
+      (cl-mapcar (lambda (file line)
+                   (let* ((parts (split-string line "\t"))
+                          (title (string-trim (or (nth 0 parts) "")))
+                          (lp (string-trim (or (nth 1 parts) "")))
+                          (cwd (string-trim (or (nth 2 parts) ""))))
+                     (cons file
+                           (list :title (and (not (string-empty-p title)) title)
+                                 :last-prompt (and (not (string-empty-p lp)) lp)
+                                 :cwd (and (not (string-empty-p cwd)) cwd)))))
+                 files lines))))
 
-(defun my/agent-shell-maybe-show-prev-transcript ()
-  (when (and (derived-mode-p 'agent-shell-mode)
-             (not (shell-maker-busy))
-             (not my/agent-history-shown)
-             (map-nested-elt agent-shell--state '(:session :id)))
-    (setq my/agent-history-shown t)
-    (let ((suppress my/agent-shell-suppress-next-transcript))
-      (setq my/agent-shell-suppress-next-transcript nil)
-      (unless suppress
-        (condition-case nil
-            (let* ((cwd (agent-shell-cwd))
-                   (dir (expand-file-name ".agent-shell/transcripts" cwd))
-                   (current agent-shell--transcript-file)
-                   (all (when (file-directory-p dir)
-                          (sort (directory-files dir t "\\.md$") #'string<)))
-                   (prev (car (last (cl-remove-if
-                                     (lambda (f) (string= f current))
-                                     all)))))
-              (when (and prev (file-exists-p prev))
-                (let ((content (with-temp-buffer
-                                 (insert-file-contents prev)
-                                 (buffer-string)))
-                      (inhibit-read-only t))
-                  (save-excursion
-                    (goto-char (point-min))
-                    (insert (propertize
-                             (concat content "\n\n")
-                             'read-only t
-                             'font-lock-face 'shadow))))))
-          (error nil))))))
+(defun my/agent-shell--read-session-summary (file)
+  "Return plist (:session-id :cwd :title :last-prompt :mtime :file) or nil."
+  (when-let ((info (cdr (assoc file
+                               (my/agent-shell--prefetch-summaries (list file))))))
+    (when (plist-get info :cwd)
+      (list :session-id (file-name-base file)
+            :cwd (plist-get info :cwd)
+            :title (plist-get info :title)
+            :last-prompt (plist-get info :last-prompt)
+            :mtime (file-attribute-modification-time (file-attributes file))
+            :file file))))
 
-(add-hook 'agent-shell-mode-hook
-          (lambda ()
-            (setq-local my/agent-history-shown nil)
-            (add-hook 'post-command-hook
-                      #'my/agent-shell-maybe-show-prev-transcript nil t)))
+(defun my/agent-shell--list-sessions (&optional limit)
+  "Return up to LIMIT session plists across `~/.claude/projects/*'.
+Sorted by file mtime descending. LIMIT defaults to
+`my/agent-shell-session-list-limit'."
+  (let* ((limit (or limit my/agent-shell-session-list-limit))
+         (root (expand-file-name "~/.claude/projects/"))
+         (files (and (file-directory-p root)
+                     (directory-files-recursively root "\\.jsonl\\'")))
+         (sorted (sort files
+                       (lambda (a b)
+                         (time-less-p
+                          (file-attribute-modification-time (file-attributes b))
+                          (file-attribute-modification-time (file-attributes a))))))
+         (top (seq-take sorted limit))
+         (summaries (my/agent-shell--prefetch-summaries top)))
+    (delq nil
+          (mapcar (lambda (file)
+                    (when-let* ((info (cdr (assoc file summaries)))
+                                (cwd (plist-get info :cwd)))
+                      (list :session-id (file-name-base file)
+                            :cwd cwd
+                            :title (plist-get info :title)
+                            :last-prompt (plist-get info :last-prompt)
+                            :mtime (file-attribute-modification-time
+                                    (file-attributes file))
+                            :file file)))
+                  top))))
+
+(defun my/agent-shell--live-sessions ()
+  "Return live agent-shell sessions as plists of :session-id :cwd :buffer :mtime."
+  (let (results)
+    (dolist (buf (buffer-list))
+      (when (and (buffer-live-p buf)
+                 (with-current-buffer buf (derived-mode-p 'agent-shell-mode)))
+        (when-let* ((state (buffer-local-value 'agent-shell--state buf))
+                    (sid (map-nested-elt state '(:session :id))))
+          (push (list :session-id sid
+                      :cwd (buffer-local-value 'default-directory buf)
+                      :buffer buf
+                      :mtime (current-time))
+                results))))
+    results))
+
+(defun my/agent-shell--format-session-entry (session &optional kind)
+  "Format SESSION plist as a `completing-read' entry string.
+KIND is `live' for open buffers, otherwise treated as saved."
+  (let* ((cwd (plist-get session :cwd))
+         (matches (and cwd
+                       (string= (file-truename
+                                 (file-name-as-directory cwd))
+                                (file-truename
+                                 (file-name-as-directory default-directory)))))
+         (marker (cond ((eq kind 'live) "● ")
+                       (matches "* ")
+                       (t "  ")))
+         (date (format-time-string "%Y-%m-%d %H:%M" (plist-get session :mtime)))
+         (dir (if (and cwd (not (string-empty-p cwd)))
+                  (file-name-nondirectory (directory-file-name cwd))
+                "?"))
+         (title (or (plist-get session :title) ""))
+         (lp (or (plist-get session :last-prompt) ""))
+         (joined (cond ((and (not (string-empty-p title))
+                             (not (string-empty-p lp)))
+                        (format "%s — %s" title lp))
+                       ((not (string-empty-p title)) title)
+                       ((not (string-empty-p lp)) lp)
+                       (t "")))
+         (desc (replace-regexp-in-string "[\n\t]+" " " joined))
+         (desc (if (> (length desc) 80)
+                   (concat (substring desc 0 79) "…")
+                 desc)))
+    (format "%s[%s]  %-22s  %s" marker date dir desc)))
+
+(defun my/agent-shell-pick-session ()
+  "Prompt for a Claude Code session: open buffer, saved, or `Start new session'.
+Open buffers are switched to; saved sessions are resumed in a fresh buffer."
+  (interactive)
+  (let* ((all-saved (my/agent-shell--list-sessions))
+         (saved-by-sid (let ((ht (make-hash-table :test 'equal)))
+                         (dolist (s all-saved)
+                           (puthash (plist-get s :session-id) s ht))
+                         ht))
+         (live (mapcar (lambda (l)
+                         (if-let ((found (gethash (plist-get l :session-id)
+                                                  saved-by-sid)))
+                             (append l (list :title (plist-get found :title)
+                                             :last-prompt (plist-get found :last-prompt)))
+                           l))
+                       (my/agent-shell--live-sessions)))
+         (live-sids (mapcar (lambda (s) (plist-get s :session-id)) live))
+         (saved (seq-remove (lambda (s)
+                              (member (plist-get s :session-id) live-sids))
+                            all-saved))
+         (new-entry "▸ Start new session")
+         (alist (append
+                 (mapcar (lambda (s)
+                           (cons (my/agent-shell--format-session-entry s 'live) s))
+                         live)
+                 (cons (cons new-entry nil)
+                       (mapcar (lambda (s)
+                                 (cons (my/agent-shell--format-session-entry s 'saved) s))
+                               saved))))
+         (display-strings (mapcar #'car alist))
+         (choice (completing-read "Agent session: " display-strings
+                                  nil t nil nil new-entry))
+         (session (cdr (assoc choice alist))))
+    (cond
+     ((null session)
+      (agent-shell-anthropic-start-claude-code))
+     ((plist-get session :buffer)
+      (switch-to-buffer (plist-get session :buffer)))
+     (t
+      (agent-shell-start
+       :config (agent-shell-anthropic-make-claude-code-config)
+       :session-id (plist-get session :session-id))))))
+
+(keymap-global-set "C-c a" #'my/agent-shell-pick-session)
+(keymap-global-set "C-c A" #'my/agent-shell-start-in-dir)
 
 (use-package agent-shell-macext
   :vc (:url "https://github.com/cxa/agent-shell-macext" :rev :newest)
